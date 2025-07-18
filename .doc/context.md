@@ -75,10 +75,8 @@ Most creators share free content but have no idea what readers actually engage w
 
 ### Core Tables
 - `documents` - Creator content
-- `analytics_sessions` - User visit tracking  
-- `scroll_events` - Detailed scroll behavior
-- `paragraph_engagement` - Time spent per content section
-- `user_journeys` - Cross-visit behavior patterns
+- `analyticsSessions` - User visit tracking with scroll behavior
+- `documentAnalytics` - Aggregated analytics data for efficient querying
 
 ## 🛣 Key Routes
 
@@ -87,6 +85,10 @@ Most creators share free content but have no idea what readers actually engage w
 - `/signin` - Authentication
 - `/share/[slug]` - Public document with analytics tracking
 - `/analytics/[documentId]` - Detailed engagement insights
+- `/sales` - **🆕 Sales intelligence dashboard** with:
+  - User document engagement profiles
+  - Sales insights and talking points
+  - Prospect identification and scoring
 
 ## 📈 Analytics Dashboard Features
 
@@ -160,6 +162,12 @@ const analyzeScrollBehavior = (events) => {
 - **Analytics dashboard** with multiple views (overview, heatmap, sessions)
 - **Navigation integration** from main dashboard to analytics
 - **Performance optimized** - no scroll event file storage, direct session aggregation
+- **🆕 Sales Intelligence** - Focused user engagement tracking for sales outreach:
+  - **Document engagement analysis** - Shows which documents each user has read
+  - **User engagement scoring** - Identifies high-value prospects automatically  
+  - **Sales insights generation** - Actionable talking points for each user
+  - **Reading behavior patterns** - Deep reads, returning readers, engagement trends
+  - **Perfect for sales teams** - Uses existing analytics data, no complex tracking needed
 
 ### 🚧 In Progress  
 - Advanced paragraph-level engagement analysis based on document structure
