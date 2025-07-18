@@ -12,24 +12,27 @@ import { Image } from "@tiptap/extension-image";
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
 import { Link } from "@tiptap/extension-link";
-import { useParams } from "next/navigation";
-import { useSessionRecording } from "@/hooks/useSessionRecording";
+import { useParams, useSearchParams } from "next/navigation";
+import { useAnalyticsTracking } from "@/hooks/use-analytics-tracking";
 import { useConvexAuth } from "convex/react";
-import { HeatmapVisualization } from "@/components/HeatmapVisualization";
-import { SessionRecordingDebugPanel } from "@/components/SessionRecordingDebugPanel";
+import { AnalyticsDemo } from "@/components/AnalyticsDemo";
 
 export default function ShareDocumentPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.slug as string;
   const { isAuthenticated } = useConvexAuth();
 
   const document = useQuery(api.documents.getDocumentBySlug, { slug });
 
-  // Initialize session recording (replaces old custom tracking)
-  const recordingState = useSessionRecording({
-    document,
-    userId: isAuthenticated ? undefined : undefined, // We can add user ID later if needed
-    enabled: true, // Enable recording for all visitors
+  // Get user ID from search params if provided (for linking browser ID to user later)
+  const userIdParam = searchParams.get('userId');
+
+  // Initialize analytics tracking
+  const analyticsState = useAnalyticsTracking({
+    documentId: document?._id!,
+    userId: userIdParam || undefined,
+    enabled: !!document?._id, // Enable tracking when document is loaded
   });
 
   const editor = useEditor({
@@ -52,7 +55,7 @@ export default function ShareDocumentPage() {
     if (editor && document?.content) {
       editor.commands.setContent(document.content);
 
-      // Add paragraph IDs for heatmap processing (used when analyzing recordings)
+      // Add paragraph IDs for analytics tracking and heatmap generation
       setTimeout(() => {
         const paragraphs = editor.view.dom.querySelectorAll(
           "p, h1, h2, h3, h4, h5, h6",
@@ -64,7 +67,7 @@ export default function ShareDocumentPage() {
           console.log(`✅ Added ID: ${paragraphId} to:`, p.textContent?.substring(0, 50));
         });
 
-        console.log("📊 Session recording will capture interactions with these paragraphs");
+        console.log("📊 Analytics tracking will monitor engagement with these paragraphs");
       }, 200);
     }
   }, [editor, document?.content]);
@@ -109,10 +112,10 @@ export default function ShareDocumentPage() {
             </div>
             <div className="text-sm text-muted-foreground flex items-center gap-4">
               <div>by {document.creator?.name || document.creator?.email}</div>
-              {recordingState.isRecording && (
-                <div className="flex items-center gap-1 text-red-600">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-xs">Recording</span>
+              {analyticsState.isTracking && (
+                <div className="flex items-center gap-1 text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs">Tracking Analytics</span>
                 </div>
               )}
             </div>
@@ -139,24 +142,29 @@ export default function ShareDocumentPage() {
         </div>
       </footer>
 
-      {/* Heatmap visualization - only show for document creator */}
-      {document && (
-        <HeatmapVisualization
-          documentId={document._id}
-          timeRange={30}
-          showMetrics={true}
-        />
-      )}
-
-      {/* Session recording debug panel */}
-      <SessionRecordingDebugPanel
-        isRecording={recordingState.isRecording}
-        sessionId={recordingState.sessionId}
-        error={recordingState.error}
-        eventCount={recordingState.eventCount}
-        duration={recordingState.duration}
-        stopRecording={recordingState.stopRecording}
+      {/* Analytics demo - shows users what we're tracking */}
+      <AnalyticsDemo
+        browserId={analyticsState.browserId}
+        sessionId={analyticsState.sessionId}
+        timeOnPage={analyticsState.timeOnPage}
+        maxScrollPercentage={analyticsState.maxScrollPercentage}
+        currentScrollPercentage={analyticsState.currentScrollPercentage}
+        scrollEventsCount={analyticsState.scrollEventsCount}
+        isTracking={analyticsState.isTracking}
       />
+
+      {/* Analytics debug panel - for development */}
+      {process.env.NODE_ENV === 'development' && analyticsState.isTracking && (
+        <div className="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg text-xs font-mono max-w-xs">
+          <div className="text-green-400 font-semibold mb-2">📊 Analytics Tracking</div>
+          <div>Browser ID: {analyticsState.browserId.split('_')[2]}</div>
+          <div>Session ID: {analyticsState.sessionId.split('_')[2]}</div>
+          <div>Time on page: {analyticsState.timeOnPage}s</div>
+          <div>Max scroll: {analyticsState.maxScrollPercentage}%</div>
+          <div>Current scroll: {analyticsState.currentScrollPercentage}%</div>
+          <div>Scroll events: {analyticsState.scrollEventsCount}</div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { Id } from "@/convex/_generated/dataModel";
-import { DocumentAnalyticsSummary } from "@/components/DocumentAnalyticsSummary";
+// import { DocumentAnalyticsSummary } from "@/components/DocumentAnalyticsSummary";
 
 export default function DashboardPage() {
     const { isAuthenticated } = useConvexAuth();
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                                             {/* Analytics summary for published documents */}
                                             {doc.isPublished && (
                                                 <div className="border-t border-border pt-3 mt-3">
-                                                    <DocumentAnalyticsSummary documentId={doc._id} timeRange={7} />
+                                                    {/* <DocumentAnalyticsSummary documentId={doc._id} timeRange={7} /> */}
                                                 </div>
                                             )}
                                         </div>
@@ -155,6 +155,15 @@ export default function DashboardPage() {
                                             >
                                                 Edit
                                             </Link>
+
+                                            {doc.isPublished && (
+                                                <Link
+                                                    href={`/analytics/${doc._id}`}
+                                                    className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded hover:bg-purple-200"
+                                                >
+                                                    Analytics
+                                                </Link>
+                                            )}
 
                                             <button
                                                 onClick={() => handleTogglePublish(doc._id)}
